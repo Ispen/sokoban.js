@@ -20,11 +20,11 @@ var level = [
     [1,1,0,1,1,0,0,0,0,0]
 ];
 
-var EMPTY = 0;
-var WALL = 1;
-var SPOT = 2;
-var CRATE = 3;
-var PLAYER = 4;
+var EMPTY = 1;
+var WALL = 0;
+var SPOT = 4;
+var CRATE = 2;
+var PLAYER = 3;
 
 window.onload = function () {
   var gameConfig = {
