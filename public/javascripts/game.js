@@ -1,114 +1,104 @@
-var game = {};
+/* global Phaser */
+'use strict';
 
-var gameOptions = {
-  tileSize: 40,
-  gameWidth: 500,
-  gameHeight: 500,
-  gameSpeed: 100
+import {level, tileDesc} from './level.js';
+import LevelManager from './LevelManager.js';
+
+var Game;
+export default Game;
+window.Game = Game; // game is fully global object
+
+const gameOptions = {
+  tileSize: 40, // physicaly 40x40 px
+  gameWidth: 520,
+  gameHeight: 520,
+  gameSpeed: 100, // TODO: remove speed
+  gameScale: 2 // TODO: define scale factor
 };
 
-var level = [
-  [0,0,3,0,0,0,0,0,0,0],
-    [0,0,1,1,2,1,1,1,1,0],
-    [0,1,1,0,1,0,0,1,1,0],
-    [1,1,0,0,1,1,0,1,0,0],
-    [1,2,1,1,2,1,1,2,1,0],
-    [1,1,0,1,1,0,0,1,1,0],
-    [0,1,0,0,1,0,0,1,0,0],
-    [1,2,0,1,2,1,1,1,0,0],
-    [1,1,1,1,1,0,1,1,0,0],
-    [1,1,0,1,1,0,0,0,0,0]
-];
+const DIRECTIONS = {
+  UP: 0,
+  DOWN: 1,
+  LEFT: 2,
+  RIGHT: 3
+};
 
-var EMPTY = 1;
-var WALL = 0;
-var SPOT = 4;
-var CRATE = 2;
-var PLAYER = 3;
-
-window.onload = function () {
-  var gameConfig = {
-    type: Phaser.CANVAS,
+window.onload = () => {
+  const gameConfig = {
+    type: Phaser.AUTO,
     width: gameOptions.gameWidth,
     height: gameOptions.gameHeight,
     scene: [playGame]
   };
-  game = new Phaser.Game(gameConfig);
+  Game = new Phaser.Game(gameConfig);
   resize();
-  window.addEventListener("resize", resize, false);
+  // window.addEventListener("resize", resize, false);
 };
 
-var playGame = new Phaser.Class({
-  Extends: Phaser.Scene,
-  initialize:
-    function playGame() {
-      Phaser.Scene.call(this, {key: "PlayGame"});
-    },
-  preload: function () {
-    this.load.spritesheet("tiles", "../images/tiles.png", {
+class playGame extends Phaser.Scene {
+  constructor () {
+    super({key: 'PlayGame'});
+  }
+
+  preload () {
+    this.load.spritesheet('tiles', '../images/tiles.png', {
       frameWidth: gameOptions.tileSize,
       frameHeight: gameOptions.tileSize
     });
-  },
-  create: function () {
-    this.crates = [];
-    this.drawLevel();
-    this.input.on("pointerup", this.endSwipe, this);
-  },
-  drawLevel: function () {
-    this.crates.length = 0;
-    for (var i = 0; i < level.length; i++) {
-      this.crates[i] = [];
-      for (var j = 0; j < level[i].length; j++) {
-        this.crates[i][j] = null;
-        switch (level[i][j]) {
-          case PLAYER:
-          case PLAYER + SPOT:
-            this.player = this.add.sprite(gameOptions.tileSize * j, gameOptions.tileSize * i, "tiles", level[i][j]);
-            this.player.posX = j;
-            this.player.posY = i;
-            this.player.depth = 1
-            this.player.setOrigin(0);
-            var tile = this.add.sprite(gameOptions.tileSize * j, gameOptions.tileSize * i, "tiles", level[i][j] - PLAYER);
-            tile.setOrigin(0);
-            tile.depth = 0;
-            break;
-          case CRATE:
-          case CRATE + SPOT:
-            this.crates[i][j] = this.add.sprite(gameOptions.tileSize * j, gameOptions.tileSize * i, "tiles", level[i][j]);
-            this.crates[i][j].setOrigin(0);
-            this.crates[i][j].depth = 1
-            var tile = this.add.sprite(gameOptions.tileSize * j, gameOptions.tileSize * i, "tiles", level[i][j] - CRATE);
-            tile.setOrigin(0);
-            break;
-          default:
-            var tile = this.add.sprite(gameOptions.tileSize * j, gameOptions.tileSize * i, "tiles", level[i][j]);
-            tile.setOrigin(0);
-        }
-      }
-    }
-  },
-  endSwipe: function (e) {
-    var swipeTime = e.upTime - e.downTime;
-    var swipe = new Phaser.Geom.Point(e.upX - e.downX, e.upY - e.downY);
-    var swipeMagnitude = Phaser.Geom.Point.GetMagnitude(swipe);
-    var swipeNormal = new Phaser.Geom.Point(swipe.x / swipeMagnitude, swipe.y / swipeMagnitude);
-    if (swipeMagnitude > 20 && swipeTime < 1000 && (Math.abs(swipeNormal.y) > 0.8 || Math.abs(swipeNormal.x) > 0.8)) {
-      if (swipeNormal.x > 0.8) {
-        this.checkMove(1, 0);
-      }
-      if (swipeNormal.x < -0.8) {
-        this.checkMove(-1, 0);
-      }
-      if (swipeNormal.y > 0.8) {
-        this.checkMove(0, 1);
-      }
-      if (swipeNormal.y < -0.8) {
-        this.checkMove(0, -1);
-      }
-    }
-  },
-  checkMove: function (deltaX, deltaY) {
+  }
+
+  create () {
+    this.levelManager = new LevelManager(level, tileDesc, gameOptions.tileSize);
+    let playerPos = this.levelManager.getPos(tileDesc.SPAWN).pop();
+    this.player = this.add.sprite(playerPos.x, playerPos.y, 'tiles', 4);
+
+    this.statics = (function (t) {
+      let all = [];
+      let walls = t.levelManager.getPos(tileDesc.WALL);
+      walls.forEach((ele) => {
+        all.push(t.add.sprite(ele.x, ele.y, 'tiles', 1));
+      });
+      let empty = t.levelManager.getPos(tileDesc.EMPTY);
+      empty = empty.concat(t.levelManager.getPos(tileDesc.SPAWN));
+      empty = empty.concat(t.levelManager.getPos(tileDesc.BOX));
+      empty.forEach((ele) => {
+        all.push(t.add.sprite(ele.x, ele.y, 'tiles', 0));
+      });
+      return all;
+    }(this));
+
+    this.boxes = (function (t) {
+      let boxes = [];
+      t.levelManager.getPos(tileDesc.BOX).forEach((ele) => {
+        boxes.push(t.add.sprite(ele.x, ele.y, 'tiles', 3));
+      });
+      return boxes;
+    }(this));
+
+    this.player.setOrigin(0);
+    this.statics.forEach((ele) => {
+      ele.setOrigin(0);
+    });
+    this.boxes.forEach((ele) => {
+      ele.setOrigin(0);
+    });
+
+    this.keys = {
+      W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+      S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+      D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+    };
+  }
+
+  update () {
+    if (this.keys.W.isDown) { console.log('PRESSED W'); }
+    if (this.keys.S.isDown) { console.log('PRESSED S'); }
+    if (this.keys.A.isDown) { console.log('PRESSED A'); }
+    if (this.keys.D.isDown) { console.log('PRESSED D'); }
+  }
+
+  checkMove (deltaX, deltaY) {
     if (this.isWalkable(this.player.posX + deltaX, this.player.posY + deltaY)) {
       this.movePlayer(deltaX, deltaY);
       return;
@@ -117,17 +107,19 @@ var playGame = new Phaser.Class({
       if (this.isWalkable(this.player.posX + 2 * deltaX, this.player.posY + 2 * deltaY)) {
         this.moveCrate(deltaX, deltaY);
         this.movePlayer(deltaX, deltaY);
-        return;
       }
     }
-  },
-  isWalkable: function (posX, posY) {
+  }
+
+  isWalkable (posX, posY) {
     return level[posY][posX] == EMPTY || level[posY][posX] == SPOT;
-  },
-  isCrate: function (posX, posY) {
+  }
+
+  isCrate (posX, posY) {
     return level[posY][posX] == CRATE || level[posY][posX] == CRATE + SPOT;
-  },
-  movePlayer: function (deltaX, deltaY) {
+  }
+
+  movePlayer (deltaX, deltaY) {
     var playerTween = this.tweens.add({
       targets: this.player,
       x: this.player.x + deltaX * gameOptions.tileSize,
@@ -142,8 +134,9 @@ var playGame = new Phaser.Class({
     this.player.posX += deltaX;
     this.player.posY += deltaY;
     level[this.player.posY][this.player.posX] += PLAYER;
-  },
-  moveCrate: function (deltaX, deltaY) {
+  }
+
+  moveCrate (deltaX, deltaY) {
     var crateTween = this.tweens.add({
       targets: this.crates[this.player.posY + deltaY][this.player.posX + deltaX],
       x: this.crates[this.player.posY + deltaY][this.player.posX + deltaX].x + deltaX * gameOptions.tileSize,
@@ -159,20 +152,23 @@ var playGame = new Phaser.Class({
     level[this.player.posY + deltaY][this.player.posX + deltaX] -= CRATE;
     level[this.player.posY + 2 * deltaY][this.player.posX + 2 * deltaX] += CRATE;
   }
-});
+}
 
 function resize () {
   var canvas = document.querySelector('canvas');
-  var windowWidth = window.innerWidth;
-  var windowHeight = window.innerHeight;
-  var windowRatio = windowWidth / windowHeight;
-  var gameRatio = game.config.width / game.config.height;
-  if (windowRatio < gameRatio) {
-    canvas.style.width = windowWidth + "px";
-    canvas.style.height = (windowWidth / gameRatio) + "px";
-  }
-  else {
-    canvas.style.width = (windowHeight * gameRatio) + "px";
-    canvas.style.height = windowHeight + "px";
-  }
+  canvas.style.width = Game.config.width;
+  canvas.style.height = Game.config.height;
+  // var windowWidth = window.innerWidth;
+  // var windowHeight = window.innerHeight;
+  // var windowRatio = windowWidth / windowHeight;
+  // var gameRatio = game.config.width / game.config.height;
+  // console.log(gameRatio + ' ' + windowRatio);
+  // if (windowRatio < gameRatio) {
+  // canvas.style.width = windowWidth + "px";
+  //   canvas.style.height = (windowWidth / gameRatio) + "px";
+  // }
+  // else {
+  //   canvas.style.width = (windowHeight * gameRatio) + "px";
+  // canvas.style.height = windowHeight + "px";
+  // }
 }
