@@ -20,7 +20,7 @@ export default class LevelManager {
     for (let i = 0; i < this.levelWidth; i++) {
       for (let j = 0; j < this.levelHeight; j++) {
         if (this.level[i][j] === key) {
-          tab.push({y: i * this.size +40, x: j * this.size +40});
+          tab.push({y: i * this.size, x: j * this.size});
         }
       }
     }
