@@ -27,23 +27,26 @@ export default class LevelManager {
     return tab;
   }
 
-  getIndexByPos (x, y) {
-    const tabISize = this.objects.length;
-    for (let i = 0; i < tabISize; i++) {
+  getIndexByPos (x, y, type = -1) {
+    const tab = [];
+    const tabISize = (type > -1) ? type + 1 : this.objects.length;
+    for (let i = (type > -1) ? type : 0; i < tabISize; i++) {
       const tabJSize = this.objects[i].length;
       for (let j = 0; j < tabJSize; j++) {
         if (this.objects[i][j].x === x && this.objects[i][j].y === y) {
-          return {desc: i, index: j};
+          tab.push({desc: i, index: j});
         }
       }
     }
-    return -1;
+    if (tab.length === 0) {
+      return -1;
+    } else {
+      return tab;
+    }
   }
 
-  swap (obj1, obj2) {
-    const tmp = this.objects[obj1.x][obj1.y];
-    this.objects[obj1.x][obj1.y] = this.objects[obj2.x][obj2.y];
-    this.objects[obj2.x][obj2.y] = tmp;
+  getObj (i, j) {
+    return this.objects[i][j];
   }
 
   getPos (key) {
@@ -53,5 +56,4 @@ export default class LevelManager {
   put (key, tab) {
     this.objects[key] = tab;
   }
-
 }

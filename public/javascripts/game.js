@@ -64,7 +64,7 @@ class playGame extends Phaser.Scene {
           break;
         case TILE_DESC.EMPTY:
           let empty = this.levelManager.getPos(TILE_DESC.EMPTY);
-          empty = empty.concat(this.levelManager.getPos(TILE_DESC.SPAWN));
+          empty = empty.concat(this.levelManager.getPos(TILE_DESC.PLAYER));
           empty = empty.concat(this.levelManager.getPos(TILE_DESC.BOX));
           empty.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 0));
@@ -76,8 +76,8 @@ class playGame extends Phaser.Scene {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 3));
           });
           break;
-        case TILE_DESC.SPAWN:
-          let players = this.levelManager.getPos(TILE_DESC.SPAWN);
+        case TILE_DESC.PLAYER:
+          let players = this.levelManager.getPos(TILE_DESC.PLAYER);
           players.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 4));
           });
@@ -93,6 +93,7 @@ class playGame extends Phaser.Scene {
       }
       tab.forEach((ele) => {
         ele.setOrigin(0);
+        ele.type = TILE_DESC[key];
       });
       this.levelManager.put(TILE_DESC[key], tab);
     }
@@ -104,24 +105,24 @@ class playGame extends Phaser.Scene {
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     };
 
-    this.player.checkMove = checkMove.bind(this.player);
+    // this.player.checkMove = checkMove.bind(this.player);
   }
 
   update () {
-    if (this.keys.W.isDown) { this.player.checkMove(DIRECTIONS.UP); }
-    if (this.keys.S.isDown) { this.player.checkMove(DIRECTIONS.DOWN); }
-    if (this.keys.A.isDown) { this.player.checkMove(DIRECTIONS.LEFT); }
-    if (this.keys.D.isDown) { this.player.checkMove(DIRECTIONS.RIGHT); }
+    if (this.keys.W.isDown) { checkMove(this.player, DIRECTIONS.UP); }
+    if (this.keys.S.isDown) { checkMove(this.player, DIRECTIONS.DOWN); }
+    if (this.keys.A.isDown) { checkMove(this.player, DIRECTIONS.LEFT); }
+    if (this.keys.D.isDown) { checkMove(this.player, DIRECTIONS.RIGHT); }
   }
 }
 
-function checkMove (dir) {
+function checkMove (context, dir) {
   // first check direction
   // secondly get tile from that direction (if up, from up)
   // if empty - move, if box - do same for box, if other return error
-  const targetPos = {x: this.x, y: this.y};
+  const targetPos = {x: context.x, y: context.y};
   const size = gameOptions.tileSize;
-  const levelManager = this.scene.levelManager;
+  const levelManager = context.scene.levelManager;
 
   switch (dir) {
     case DIRECTIONS.UP:
@@ -139,14 +140,21 @@ function checkMove (dir) {
     default: console.warn('calling object to move, without direction!');
   }
 
-  const target = levelManager.getIndexByPos(targetPos.x, targetPos.y);
-  const t = levelManager.getIndexByPos(this.x, this.y);
+  const t = levelManager.getIndexByPos(context.x, context.y, context.type).pop(); // there isn't possibility to 2 box or 2 players in one tile, so just pop
+  const target = levelManager.getIndexByPos(targetPos.x, targetPos.y).pop(); // a bit hardcoded, but first element is EMPTY tile, so we want the last one witch will be BOX
 
   if (target !== -1 && target.desc === TILE_DESC.EMPTY) {
-    this.x = targetPos.x;
-    this.y = targetPos.y;
-
+    context.x = targetPos.x;
+    context.y = targetPos.y;
+  } else if (t.desc !== TILE_DESC.BOX && target.desc === TILE_DESC.BOX) {
+    if (checkMove(levelManager.getObj(target.desc, target.index), dir) > -1) {
+      context.x = targetPos.x;
+      context.y = targetPos.y;
+    }
+  } else {
+    return -1;
   }
+  return 0;
 }
 
 function resize () {

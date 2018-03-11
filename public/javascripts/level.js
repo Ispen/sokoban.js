@@ -18,5 +18,5 @@ export const TILE_DESC = {
   EMPTY: 1,
   BOX: 2,
   GOAL: 3,
-  SPAWN: 4
+  PLAYER: 4
 };
