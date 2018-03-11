@@ -1,7 +1,7 @@
 /* global Phaser */
 'use strict';
 
-import {level, tileDesc} from './level.js';
+import {level, TILE_DESC} from './level.js';
 import LevelManager from './LevelManager.js';
 
 var Game;
@@ -48,40 +48,54 @@ class playGame extends Phaser.Scene {
   }
 
   create () {
-    this.levelManager = new LevelManager(level, tileDesc, gameOptions.tileSize);
-    let playerPos = this.levelManager.getPos(tileDesc.SPAWN).pop();
-    this.player = this.add.sprite(playerPos.x, playerPos.y, 'tiles', 4);
+    this.cameras.main.x = gameOptions.tileSize;
+    this.cameras.main.y = gameOptions.tileSize;
 
-    this.statics = (function (t) {
-      let all = [];
-      let walls = t.levelManager.getPos(tileDesc.WALL);
-      walls.forEach((ele) => {
-        all.push(t.add.sprite(ele.x, ele.y, 'tiles', 1));
-      });
-      let empty = t.levelManager.getPos(tileDesc.EMPTY);
-      empty = empty.concat(t.levelManager.getPos(tileDesc.SPAWN));
-      empty = empty.concat(t.levelManager.getPos(tileDesc.BOX));
-      empty.forEach((ele) => {
-        all.push(t.add.sprite(ele.x, ele.y, 'tiles', 0));
-      });
-      return all;
-    }(this));
+    this.levelManager = new LevelManager(level, TILE_DESC, gameOptions.tileSize);
 
-    this.boxes = (function (t) {
-      let boxes = [];
-      t.levelManager.getPos(tileDesc.BOX).forEach((ele) => {
-        boxes.push(t.add.sprite(ele.x, ele.y, 'tiles', 3));
+    for (let key in TILE_DESC) {
+      let tab = [];
+      switch (TILE_DESC[key]) {
+        case TILE_DESC.WALL:
+          let walls = this.levelManager.getPos(TILE_DESC.WALL);
+          walls.forEach((ele) => {
+            tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 1));
+          });
+          break;
+        case TILE_DESC.EMPTY:
+          let empty = this.levelManager.getPos(TILE_DESC.EMPTY);
+          empty = empty.concat(this.levelManager.getPos(TILE_DESC.SPAWN));
+          empty = empty.concat(this.levelManager.getPos(TILE_DESC.BOX));
+          empty.forEach((ele) => {
+            tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 0));
+          });
+          break;
+        case TILE_DESC.BOX:
+          let boxes = this.levelManager.getPos(TILE_DESC.BOX);
+          boxes.forEach((ele) => {
+            tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 3));
+          });
+          break;
+        case TILE_DESC.SPAWN:
+          let players = this.levelManager.getPos(TILE_DESC.SPAWN);
+          players.forEach((ele) => {
+            tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 4));
+          });
+          this.player = tab[0];
+          break;
+        case TILE_DESC.GOAL:
+          let goals = this.levelManager.getPos(TILE_DESC.GOAL);
+          goals.forEach((ele) => {
+            tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 2));
+          });
+          break;
+        default:
+      }
+      tab.forEach((ele) => {
+        ele.setOrigin(0);
       });
-      return boxes;
-    }(this));
-
-    this.player.setOrigin(0);
-    this.statics.forEach((ele) => {
-      ele.setOrigin(0);
-    });
-    this.boxes.forEach((ele) => {
-      ele.setOrigin(0);
-    });
+      this.levelManager.put(TILE_DESC[key], tab);
+    }
 
     this.keys = {
       W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
@@ -89,68 +103,49 @@ class playGame extends Phaser.Scene {
       S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     };
+
+    this.player.checkMove = checkMove.bind(this.player);
   }
 
   update () {
-    if (this.keys.W.isDown) { console.log('PRESSED W'); }
-    if (this.keys.S.isDown) { console.log('PRESSED S'); }
-    if (this.keys.A.isDown) { console.log('PRESSED A'); }
-    if (this.keys.D.isDown) { console.log('PRESSED D'); }
+    if (this.keys.W.isDown) { this.player.checkMove(DIRECTIONS.UP); }
+    if (this.keys.S.isDown) { this.player.checkMove(DIRECTIONS.DOWN); }
+    if (this.keys.A.isDown) { this.player.checkMove(DIRECTIONS.LEFT); }
+    if (this.keys.D.isDown) { this.player.checkMove(DIRECTIONS.RIGHT); }
+  }
+}
+
+function checkMove (dir) {
+  // first check direction
+  // secondly get tile from that direction (if up, from up)
+  // if empty - move, if box - do same for box, if other return error
+  const targetPos = {x: this.x, y: this.y};
+  const size = gameOptions.tileSize;
+  const levelManager = this.scene.levelManager;
+
+  switch (dir) {
+    case DIRECTIONS.UP:
+      targetPos.y -= size;
+      break;
+    case DIRECTIONS.DOWN:
+      targetPos.y += size;
+      break;
+    case DIRECTIONS.LEFT:
+      targetPos.x -= size;
+      break;
+    case DIRECTIONS.RIGHT:
+      targetPos.x += size;
+      break;
+    default: console.warn('calling object to move, without direction!');
   }
 
-  checkMove (deltaX, deltaY) {
-    if (this.isWalkable(this.player.posX + deltaX, this.player.posY + deltaY)) {
-      this.movePlayer(deltaX, deltaY);
-      return;
-    }
-    if (this.isCrate(this.player.posX + deltaX, this.player.posY + deltaY)) {
-      if (this.isWalkable(this.player.posX + 2 * deltaX, this.player.posY + 2 * deltaY)) {
-        this.moveCrate(deltaX, deltaY);
-        this.movePlayer(deltaX, deltaY);
-      }
-    }
-  }
+  const target = levelManager.getIndexByPos(targetPos.x, targetPos.y);
+  const t = levelManager.getIndexByPos(this.x, this.y);
 
-  isWalkable (posX, posY) {
-    return level[posY][posX] == EMPTY || level[posY][posX] == SPOT;
-  }
+  if (target !== -1 && target.desc === TILE_DESC.EMPTY) {
+    this.x = targetPos.x;
+    this.y = targetPos.y;
 
-  isCrate (posX, posY) {
-    return level[posY][posX] == CRATE || level[posY][posX] == CRATE + SPOT;
-  }
-
-  movePlayer (deltaX, deltaY) {
-    var playerTween = this.tweens.add({
-      targets: this.player,
-      x: this.player.x + deltaX * gameOptions.tileSize,
-      y: this.player.y + deltaY * gameOptions.tileSize,
-      duration: gameOptions.gameSpeed,
-      onComplete: function (tween, target, player) {
-        player.setFrame(level[player.posY][player.posX]);
-      },
-      onCompleteParams: [this.player]
-    });
-    level[this.player.posY][this.player.posX] -= PLAYER;
-    this.player.posX += deltaX;
-    this.player.posY += deltaY;
-    level[this.player.posY][this.player.posX] += PLAYER;
-  }
-
-  moveCrate (deltaX, deltaY) {
-    var crateTween = this.tweens.add({
-      targets: this.crates[this.player.posY + deltaY][this.player.posX + deltaX],
-      x: this.crates[this.player.posY + deltaY][this.player.posX + deltaX].x + deltaX * gameOptions.tileSize,
-      y: this.crates[this.player.posY + deltaY][this.player.posX + deltaX].y + deltaY * gameOptions.tileSize,
-      duration: gameOptions.gameSpeed,
-      onComplete: function (tween, target, crate, player) {
-        crate.setFrame(level[player.posY + deltaY][player.posX + deltaX]);
-      },
-      onCompleteParams: [this.crates[this.player.posY + deltaY][this.player.posX + deltaX], this.player]
-    });
-    this.crates[this.player.posY + 2 * deltaY][this.player.posX + 2 * deltaX] = this.crates[this.player.posY + deltaY][this.player.posX + deltaX];
-    this.crates[this.player.posY + deltaY][this.player.posX + deltaX] = null;
-    level[this.player.posY + deltaY][this.player.posX + deltaX] -= CRATE;
-    level[this.player.posY + 2 * deltaY][this.player.posX + 2 * deltaX] += CRATE;
   }
 }
 
