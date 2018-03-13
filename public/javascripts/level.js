@@ -14,9 +14,10 @@ export const level = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
 export const TILE_DESC = {
+  // order (not value!) depends on draw prior
   WALL: 0,
   EMPTY: 1,
-  BOX: 2,
   GOAL: 3,
+  BOX: 2,
   PLAYER: 4
 };
