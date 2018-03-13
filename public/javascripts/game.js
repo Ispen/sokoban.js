@@ -6,7 +6,7 @@ import LevelManager from './LevelManager.js';
 
 var Game;
 export default Game;
-window.Game = Game; // game is fully global object
+window.Game = Game; // fully global object
 
 const gameOptions = {
   tileSize: 40, // physicaly 40x40 px
@@ -51,40 +51,40 @@ class playGame extends Phaser.Scene {
     this.cameras.main.x = gameOptions.tileSize;
     this.cameras.main.y = gameOptions.tileSize;
 
-    this.levelManager = new LevelManager(level, TILE_DESC, gameOptions.tileSize);
+    this.levelManager = new LevelManager(level, gameOptions.tileSize);
 
     for (let key in TILE_DESC) {
       let tab = [];
       switch (TILE_DESC[key]) {
         case TILE_DESC.WALL:
-          let walls = this.levelManager.getPos(TILE_DESC.WALL);
+          let walls = this.levelManager.getObjByKey(TILE_DESC.WALL);
           walls.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 1));
           });
           break;
         case TILE_DESC.EMPTY:
-          let empty = this.levelManager.getPos(TILE_DESC.EMPTY);
-          empty = empty.concat(this.levelManager.getPos(TILE_DESC.PLAYER));
-          empty = empty.concat(this.levelManager.getPos(TILE_DESC.BOX));
+          let empty = this.levelManager.getObjByKey(TILE_DESC.EMPTY);
+          empty = empty.concat(this.levelManager.getObjByKey(TILE_DESC.PLAYER));
+          empty = empty.concat(this.levelManager.getObjByKey(TILE_DESC.BOX));
           empty.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 0));
           });
           break;
         case TILE_DESC.BOX:
-          let boxes = this.levelManager.getPos(TILE_DESC.BOX);
+          let boxes = this.levelManager.getObjByKey(TILE_DESC.BOX);
           boxes.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 3));
           });
           break;
         case TILE_DESC.PLAYER:
-          let players = this.levelManager.getPos(TILE_DESC.PLAYER);
+          let players = this.levelManager.getObjByKey(TILE_DESC.PLAYER);
           players.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 4));
           });
           this.player = tab[0];
           break;
         case TILE_DESC.GOAL:
-          let goals = this.levelManager.getPos(TILE_DESC.GOAL);
+          let goals = this.levelManager.getObjByKey(TILE_DESC.GOAL);
           goals.forEach((ele) => {
             tab.push(this.add.sprite(ele.x, ele.y, 'tiles', 2));
           });
@@ -104,57 +104,30 @@ class playGame extends Phaser.Scene {
       S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     };
-
-    // this.player.checkMove = checkMove.bind(this.player);
   }
 
   update () {
-    if (this.keys.W.isDown) { checkMove(this.player, DIRECTIONS.UP); }
-    if (this.keys.S.isDown) { checkMove(this.player, DIRECTIONS.DOWN); }
-    if (this.keys.A.isDown) { checkMove(this.player, DIRECTIONS.LEFT); }
-    if (this.keys.D.isDown) { checkMove(this.player, DIRECTIONS.RIGHT); }
-  }
-}
-
-function checkMove (context, dir) {
-  // first check direction
-  // secondly get tile from that direction (if up, from up)
-  // if empty - move, if box - do same for box, if other return error
-  const targetPos = {x: context.x, y: context.y};
-  const size = gameOptions.tileSize;
-  const levelManager = context.scene.levelManager;
-
-  switch (dir) {
-    case DIRECTIONS.UP:
-      targetPos.y -= size;
-      break;
-    case DIRECTIONS.DOWN:
-      targetPos.y += size;
-      break;
-    case DIRECTIONS.LEFT:
-      targetPos.x -= size;
-      break;
-    case DIRECTIONS.RIGHT:
-      targetPos.x += size;
-      break;
-    default: console.warn('calling object to move, without direction!');
-  }
-
-  const t = levelManager.getIndexByPos(context.x, context.y, context.type).pop(); // there isn't possibility to 2 box or 2 players in one tile, so just pop
-  const target = levelManager.getIndexByPos(targetPos.x, targetPos.y).pop(); // a bit hardcoded, but first element is EMPTY tile, so we want the last one witch will be BOX
-
-  if (target !== -1 && target.desc === TILE_DESC.EMPTY) {
-    context.x = targetPos.x;
-    context.y = targetPos.y;
-  } else if (t.desc !== TILE_DESC.BOX && target.desc === TILE_DESC.BOX) {
-    if (checkMove(levelManager.getObj(target.desc, target.index), dir) > -1) {
-      context.x = targetPos.x;
-      context.y = targetPos.y;
+    if (this.keys.W.isDown) {
+      if (this.levelManager.checkMove(this.player, DIRECTIONS.UP) > -1) {
+        this.levelManager.move(this.player, DIRECTIONS.UP);
+      }
     }
-  } else {
-    return -1;
+    if (this.keys.S.isDown) {
+      if (this.levelManager.checkMove(this.player, DIRECTIONS.DOWN) > -1) {
+        this.levelManager.move(this.player, DIRECTIONS.DOWN);
+      }
+    }
+    if (this.keys.A.isDown) {
+      if (this.levelManager.checkMove(this.player, DIRECTIONS.LEFT) > -1) {
+        this.levelManager.move(this.player, DIRECTIONS.LEFT);
+      }
+    }
+    if (this.keys.D.isDown) {
+      if (this.levelManager.checkMove(this.player, DIRECTIONS.RIGHT) > -1) {
+        this.levelManager.move(this.player, DIRECTIONS.RIGHT);
+      }
+    }
   }
-  return 0;
 }
 
 function resize () {
