@@ -21,6 +21,29 @@ export default class LevelManager {
       // create tables with {x, y} cords of all elements
       this.objects[TILE_DESC[key]] = this.generatePos(TILE_DESC[key]);
     }
+    this.playerPos = [];
+    this.boxPos=[];
+    this.startingPositions = function (t) {
+      t.getObjByKey(TILE_DESC.PLAYER).forEach((player) => {
+        t.playerPos.push({x: player.x, y: player.y});
+      });
+      t.getObjByKey(TILE_DESC.BOX).forEach((box) => {
+        t.boxPos.push({x: box.x, y: box.y});
+      });
+    }(this);
+  }
+
+  mapReset () {
+    const player = this.getObjByKey(TILE_DESC.PLAYER)[0];
+    const boxes = this.getObjByKey(TILE_DESC.BOX);
+    const playerPos = this.playerPos[0];
+    player.x = playerPos.x;
+    player.y = playerPos.y;
+    boxes.forEach((box, index) => {
+      let box2 = this.boxPos[index];
+      box.x = box2.x;
+      box.y = box2.y;
+    });
   }
 
   generatePos (key) {
@@ -49,8 +72,8 @@ export default class LevelManager {
     return tab;
   }
 
-  getObjByIndex (i, j) {
-    return this.objects[i][j];
+  getObjByIndex (x, y) {
+    return this.objects[x][y];
   }
 
   getObjByKey (key) {
@@ -58,6 +81,7 @@ export default class LevelManager {
   }
 
   move (context, dir) {
+    console.log(dir + ' ');
     // logic should guarantee that way is clear - this function will force move
     const targetPos = this.newPositionVector(dir, context.x, context.y);
     const targetIndex = this.getIndexByPos(targetPos.x, targetPos.y, TILE_DESC.BOX).pop();
@@ -87,10 +111,6 @@ export default class LevelManager {
       default: console.warn('calling object to move, without direction!');
     }
     return vector;
-  }
-
-  getSize () {
-    return this.size;
   }
 
   put (key, tab) {

@@ -19,3 +19,8 @@ Victory/lose conditions - TODO
 Solver - TODO  
 Implement Brute Force solve algorithm - TODO  
 Implement more intelligent solve algorithm - TODO  
+Backward compatibility - TODO
+
+### Know Issues ###
+In firefox you probably need to enable feature called `dom.moduleScripts.enabled`.  
+Write `about:config` in address, find `dom.moduleScripts.enabled` and set value to **true**.

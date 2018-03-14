@@ -3,13 +3,15 @@
 
 import {level, TILE_DESC} from './level.js';
 import LevelManager from './LevelManager.js';
+// import Solver from './Solver.js';
+import SolverBySurist from './SolverBySurist.js';
 
 var Game;
 export default Game;
 window.Game = Game; // fully global object
 
 const gameOptions = {
-  tileSize: 40, // physicaly 40x40 px
+  tileSize: 40, // physically 40x40 px
   gameWidth: 520,
   gameHeight: 520,
   gameSpeed: 100, // TODO: remove speed
@@ -104,6 +106,9 @@ class playGame extends Phaser.Scene {
       S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     };
+
+    this.solver = new SolverBySurist(this.levelManager, this.player);
+    this.solver.exe();
   }
 
   update () {
