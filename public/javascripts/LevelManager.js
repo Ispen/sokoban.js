@@ -11,7 +11,6 @@ const DIRECTIONS = {
 
 export default class LevelManager {
   constructor (level, size) { // reminder: {EMPTY, WALL, BOX, SPAWN, GOAL}
-    this.originLevel = level.slice();
     this.level = level;
     this.size = size;
     this.levelWidth = this.level.length;
@@ -21,6 +20,7 @@ export default class LevelManager {
       // create tables with {x, y} cords of all elements
       this.objects[TILE_DESC[key]] = this.generatePos(TILE_DESC[key]);
     }
+    this.startingPositions = savePositions(this.objects);
   }
 
   generatePos (key) {
@@ -123,4 +123,44 @@ export default class LevelManager {
       return -1;
     }
   }
+
+  isWin () {
+    // return true when all goal fields are occupied by boxes
+    let count = 0;
+    const goals = this.getObjByKey(TILE_DESC.GOAL);
+    const boxes = this.getObjByKey(TILE_DESC.BOX);
+    goals.forEach((goal) => {
+      boxes.forEach((box) => {
+        if (goal.x === box.x && goal.y === box.y) {
+          count++;
+        }
+      });
+    });
+    return count === goals.length;
+  }
+
+  resetPositions () {
+    const player = this.getObjByKey(TILE_DESC.PLAYER)[0];
+    const boxes = this.getObjByKey(TILE_DESC.BOX);
+    const newPlayerPos = this.startingPositions[TILE_DESC.PLAYER][0];
+    const newBoxesPos = this.startingPositions[TILE_DESC.BOX];
+    player.x = newPlayerPos.x;
+    player.y = newPlayerPos.y;
+    boxes.forEach((box, index) => {
+      box.x = newBoxesPos[index].x;
+      box.y = newBoxesPos[index].y;
+    });
+  }
 }
+
+const savePositions = (objects) => {
+  const allPos = [];
+  objects.forEach((tab, index) => {
+    const pos = [];
+    tab.forEach((ele) => {
+      pos.push({x: ele.x, y: ele.y});
+    });
+    allPos[index] = pos;
+  });
+  return allPos;
+};

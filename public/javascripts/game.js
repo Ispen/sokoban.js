@@ -38,6 +38,8 @@ window.onload = () => {
 class playGame extends Phaser.Scene {
   constructor () {
     super({key: 'PlayGame'});
+    this.INPUT_DELAY = 400;
+    this.lastKeyTime = 0;
   }
 
   preload () {
@@ -102,31 +104,42 @@ class playGame extends Phaser.Scene {
       W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
       A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+      D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+      R: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
     };
   }
 
   update () {
+    if (this.lastKeyTime + this.INPUT_DELAY < this.time.now) {
+      this.lastKeyTime = (this.checkKeys())
+        ? this.time.now
+        : this.lastKeyTime;
+    }
+  }
+
+  checkKeys () {
     if (this.keys.W.isDown) {
       if (this.levelManager.checkMove(this.player, DIRECTIONS.UP) > -1) {
         this.levelManager.move(this.player, DIRECTIONS.UP);
       }
-    }
-    if (this.keys.S.isDown) {
+    } else if (this.keys.S.isDown) {
       if (this.levelManager.checkMove(this.player, DIRECTIONS.DOWN) > -1) {
         this.levelManager.move(this.player, DIRECTIONS.DOWN);
       }
-    }
-    if (this.keys.A.isDown) {
+    } else if (this.keys.A.isDown) {
       if (this.levelManager.checkMove(this.player, DIRECTIONS.LEFT) > -1) {
         this.levelManager.move(this.player, DIRECTIONS.LEFT);
       }
-    }
-    if (this.keys.D.isDown) {
+    } else if (this.keys.D.isDown) {
       if (this.levelManager.checkMove(this.player, DIRECTIONS.RIGHT) > -1) {
         this.levelManager.move(this.player, DIRECTIONS.RIGHT);
       }
+    } else if (this.keys.R.isDown) {
+      this.levelManager.resetPositions();
+    } else {
+      return 0;
     }
+    return 1;
   }
 }
 
