@@ -15,7 +15,7 @@ Game engine - DONE
 Example map - DONE  
 View model - DONE  
 Moving and collisions - DONE  
-Victory/lose conditions - TODO  
-Solver - TODO  
-Implement Brute Force solve algorithm - TODO  
+Victory conditions - DONE  
+Solver - IN PROGRESS  
+Implement Brute Force solve algorithm - DONE  
 Implement more intelligent solve algorithm - TODO  

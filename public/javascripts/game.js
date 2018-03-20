@@ -3,6 +3,7 @@
 
 import {level, TILE_DESC} from './level.js';
 import LevelManager from './LevelManager.js';
+import Solver from './Solver.js';
 
 var Game;
 export default Game;
@@ -107,6 +108,9 @@ class playGame extends Phaser.Scene {
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       R: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
     };
+
+    this.solver = new Solver(this.levelManager, this.player); // TODO: rework that constructor and class
+    this.solver.brainlessBruteForce();
   }
 
   update () {
