@@ -15,7 +15,7 @@ export default class Solver {
 
   async brainlessBruteForce () {
     const STEPS_DIR = 4;
-    const MAX_MOVES = 15;
+    const MAX_MOVES = 13;
     let currentDepth = 0;
     let floorSize = 0;
     const allNodes = [];
@@ -47,6 +47,6 @@ export default class Solver {
       }
       currentDepth++;
     }
-    console.log('The end! Reached depth: ', --currentDepth);
+    console.log('The end! Reached depth: ', currentDepth);
   }
 }

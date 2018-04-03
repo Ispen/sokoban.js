@@ -1,7 +1,9 @@
 # H1 Sokoban.js #
-Sokoban.js is some kind solver, for sokoban games levels.  
-Additionally can display whole process of solving.  
+Sokoban.js is a playground for solvers of sokoban game. 
 Just import your map, run solver and wait for results.
+The currently working algorithm (brainless brute force) can find a solution for up to 17 steps (more can harm your web browser).  
+If you want to get more performance, write yours!
+You can also walk manually using WSAD keys and R for map reset.
 
 ### How do I get set up? ###
 1. Download repo  
@@ -15,7 +17,6 @@ Game engine - DONE
 Example map - DONE  
 View model - DONE  
 Moving and collisions - DONE  
-Victory conditions - DONE  
-Solver - IN PROGRESS  
+Solvers standard - TODO  
 Implement Brute Force solve algorithm - DONE  
 Implement more intelligent solve algorithm - TODO  

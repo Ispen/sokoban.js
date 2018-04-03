@@ -7,7 +7,6 @@ import Solver from './Solver.js';
 
 var Game;
 export default Game;
-window.Game = Game; // fully global object
 
 const gameOptions = {
   tileSize: 40, // physicaly 40x40 px
@@ -39,7 +38,7 @@ window.onload = () => {
 class playGame extends Phaser.Scene {
   constructor () {
     super({key: 'PlayGame'});
-    this.INPUT_DELAY = 400;
+    this.INPUT_DELAY = 200;
     this.lastKeyTime = 0;
   }
 
@@ -148,7 +147,7 @@ class playGame extends Phaser.Scene {
 }
 
 function resize () {
-  var canvas = document.querySelector('canvas');
+  const canvas = document.querySelector('canvas');
   canvas.style.width = Game.config.width;
   canvas.style.height = Game.config.height;
   // var windowWidth = window.innerWidth;
