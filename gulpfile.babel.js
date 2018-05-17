@@ -13,19 +13,19 @@ gulp.task('css', () => {
 });
 
 gulp.task('phaser', () => {
-  return gulp.src('node_modules/phaser/dist/phaser.min.bin')
+  return gulp.src('node_modules/phaser/dist/phaser.min.js')
     .pipe(gulp.dest('public/javascripts/bin'));
 });
 
-gulp.task('js-client', [ 'css', 'phaser' ], () => {
+gulp.task('js-client', gulp.series([ 'css', 'phaser' ], () => {
   return gulp.src('src/client/javascripts/*.js')
     .pipe(webpack())
     .pipe(babel())
     .pipe(sourcemaps.init())
-    .pipe(concat('app.min.js'))
     .pipe(sourcemaps.write())
+    .pipe(concat('app.min.js'))
     .pipe(gulp.dest('public/javascripts'));
-});
+}));
 
 gulp.task('webpack', () => {
   return gulp.src('public/javascripts/app.min.js')
@@ -39,6 +39,7 @@ gulp.task('js-server', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch('src/client/javascripts/*.js', [ 'js-client' ]);
+  gulp.watch('src/client/javascripts/*.js', 'js-client');
 });
-gulp.task('default', [ 'js-client', 'js-server' ]);
+
+gulp.task('default', gulp.series([ 'js-client', 'js-server' ]));

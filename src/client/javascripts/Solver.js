@@ -13,7 +13,7 @@ export default class Solver {
     this.player = player;
   }
 
-  async brainlessBruteForce () {
+  brainlessBruteForce () {
     const STEPS_DIR = 4;
     const MAX_MOVES = 13;
     let currentDepth = 0;
