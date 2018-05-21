@@ -1,45 +1,60 @@
 import gulp from 'gulp';
 import babel from 'gulp-babel';
 import concat from 'gulp-concat';
+import del from 'del';
 import minifyCSS from 'gulp-csso';
-import sourcemaps from 'gulp-sourcemaps';
 import uglify from 'gulp-uglify';
 import webpack from 'webpack-stream';
 
+gulp.task('clean', () => {
+  return del([ './build' ]);
+});
+
+gulp.task('copy', () => {
+  return gulp.src('./src/client/images/**')
+      .pipe(gulp.dest('./build/public/images/'));
+});
+
 gulp.task('css', () => {
-  return gulp.src('src/client/stylesheets/*.css')
+  return gulp.src('./src/client/stylesheets/*.css')
     .pipe(minifyCSS())
-    .pipe(gulp.dest('public/stylesheets'));
+    .pipe(gulp.dest('./build/public/stylesheets'));
 });
 
 gulp.task('phaser', () => {
-  return gulp.src('node_modules/phaser/dist/phaser.min.js')
-    .pipe(gulp.dest('public/javascripts/bin'));
+  return gulp.src('./node_modules/phaser/dist/phaser.min.js')
+    .pipe(gulp.dest('./build/public/javascripts/bin'));
 });
 
-gulp.task('js-client', gulp.series([ 'css', 'phaser' ], () => {
-  return gulp.src('src/client/javascripts/*.js')
+gulp.task('webpack', () => {
+  return gulp.src('./src/client/javascripts/*.js')
+    .pipe(webpack(({
+      devtool: 'source-map',
+      output: {
+        filename: 'app.min.js'
+      }
+    })))
+    .pipe(gulp.dest('./build/public/javascripts'));
+});
+
+gulp.task('js-client', () => {
+  return gulp.src('./src/client/javascripts/*.js')
     .pipe(webpack())
     .pipe(babel())
-    .pipe(sourcemaps.init())
-    .pipe(sourcemaps.write())
+    .pipe(uglify())
     .pipe(concat('app.min.js'))
-    .pipe(gulp.dest('public/javascripts'));
-}));
-
-gulp.task('webpack', () => {
-  return gulp.src('public/javascripts/app.min.js')
-    .pipe(gulp.dest('public/javascripts'));
+    .pipe(gulp.dest('./build/public/javascripts'));
 });
 
 gulp.task('js-server', () => {
-  return gulp.src('src/server/*.js')
+  return gulp.src('./src/server/*.js')
     .pipe(uglify())
-    .pipe(gulp.dest('build/'));
+    .pipe(gulp.dest('./build/'));
 });
 
 gulp.task('watch', () => {
-  gulp.watch('src/client/javascripts/*.js', 'js-client');
+  gulp.watch('./src/client/javascripts/*.js', gulp.series('webpack'));
 });
 
-gulp.task('default', gulp.series([ 'js-client', 'js-server' ]));
+gulp.task('default', gulp.series([ 'clean', 'copy', 'css', 'phaser', 'js-client', 'js-server' ]));
+gulp.task('dev', gulp.series([ 'clean', 'copy', 'css', 'phaser', 'webpack', 'js-server', 'watch']));
