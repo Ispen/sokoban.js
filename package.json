@@ -4,7 +4,7 @@
   "private": false,
   "scripts": {
     "build": "gulp",
-    "dev": "gulp dev | node ./build/www --inspect-brk",
+    "dev": "gulp dev | node ./build/www",
     "start": "gulp && node ./build/www"
   },
   "dependencies": {

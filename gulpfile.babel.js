@@ -11,12 +11,12 @@ gulp.task('clean', () => {
 });
 
 gulp.task('copy', () => {
-  return gulp.src('./src/client/images/**')
+  return gulp.src('./client/images/**')
       .pipe(gulp.dest('./build/public/images/'));
 });
 
 gulp.task('css', () => {
-  return gulp.src('./src/client/stylesheets/*.css')
+  return gulp.src('./client/stylesheets/*.css')
     .pipe(minifyCSS())
     .pipe(gulp.dest('./build/public/stylesheets'));
 });
@@ -27,7 +27,7 @@ gulp.task('phaser', () => {
 });
 
 gulp.task('webpack', () => {
-  return gulp.src('./src/client/javascripts/*.js')
+  return gulp.src('./client/javascripts/*.js')
     .pipe(webpack(({
       devtool: 'source-map',
       output: {
@@ -38,7 +38,7 @@ gulp.task('webpack', () => {
 });
 
 gulp.task('js-client', () => {
-  return gulp.src('./src/client/javascripts/*.js')
+  return gulp.src('./client/javascripts/*.js')
     .pipe(webpack())
     .pipe(babel())
     .pipe(uglify())
@@ -47,13 +47,13 @@ gulp.task('js-client', () => {
 });
 
 gulp.task('js-server', () => {
-  return gulp.src('./src/server/*.js')
+  return gulp.src('./server/*.js')
     .pipe(uglify())
     .pipe(gulp.dest('./build/'));
 });
 
 gulp.task('watch', () => {
-  gulp.watch('./src/client/javascripts/*.js', gulp.series('webpack'));
+  gulp.watch('./client/javascripts/*.js', gulp.series('webpack'));
 });
 
 gulp.task('default', gulp.series([ 'clean', 'copy', 'css', 'phaser', 'js-client', 'js-server' ]));

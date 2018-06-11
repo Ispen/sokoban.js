@@ -33,6 +33,12 @@ window.onload = () => {
   Game = new Phaser.Game(gameConfig);
   resize();
   // window.addEventListener("resize", resize, false);
+  const myWorker = new Worker();
+  const heh = {a: 'xd'};
+  myWorker.postMessage(heh);
+  myWorker.onmessage = (e) => {
+    console.log(e.data);
+  }
 };
 
 class playGame extends Phaser.Scene {
@@ -105,11 +111,16 @@ class playGame extends Phaser.Scene {
       A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      R: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
+      R: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R),
+      G: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G)
     };
 
     this.solver = new Solver(this.levelManager, this.player); // TODO: rework that constructor and class
     this.solver.brainlessBruteForce();
+  }
+
+  startWorker () {
+    2
   }
 
   update () {
@@ -139,6 +150,8 @@ class playGame extends Phaser.Scene {
       }
     } else if (this.keys.R.isDown) {
       this.levelManager.resetPositions();
+    } else if (this.keys.G.isDown) {
+      this.startWorker();
     } else {
       return 0;
     }
