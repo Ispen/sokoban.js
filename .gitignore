@@ -3,3 +3,4 @@ node_modules
 build
 public/**
 !public/images/*
+yarn-error.log
