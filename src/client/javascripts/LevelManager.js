@@ -23,6 +23,55 @@ export default class LevelManager {
     this.startingPositions = savePositions(this.objects);
   }
 
+  loadLevel({scene}) {
+    let player;
+    for (let key in TILE_DESC) {
+      let tab = [];
+      switch (TILE_DESC[key]) {
+        case TILE_DESC.WALL:
+          let walls = this.getObjByKey(TILE_DESC.WALL);
+          walls.forEach((ele) => {
+            tab.push(scene.add.sprite(ele.x, ele.y, 'tiles', 1));
+          });
+          break;
+        case TILE_DESC.EMPTY:
+          let empty = this.getObjByKey(TILE_DESC.EMPTY);
+          empty = empty.concat(this.getObjByKey(TILE_DESC.PLAYER));
+          empty = empty.concat(this.getObjByKey(TILE_DESC.BOX));
+          empty.forEach((ele) => {
+            tab.push(scene.add.sprite(ele.x, ele.y, 'tiles', 0));
+          });
+          break;
+        case TILE_DESC.BOX:
+          let boxes = this.getObjByKey(TILE_DESC.BOX);
+          boxes.forEach((ele) => {
+            tab.push(scene.add.sprite(ele.x, ele.y, 'tiles', 3));
+          });
+          break;
+        case TILE_DESC.PLAYER:
+          let players = this.getObjByKey(TILE_DESC.PLAYER);
+          players.forEach((ele) => {
+            tab.push(scene.add.sprite(ele.x, ele.y, 'tiles', 4));
+          });
+          player = tab[0];
+          break;
+        case TILE_DESC.GOAL:
+          let goals = this.getObjByKey(TILE_DESC.GOAL);
+          goals.forEach((ele) => {
+            tab.push(scene.add.sprite(ele.x, ele.y, 'tiles', 2));
+          });
+          break;
+        default:
+      }
+      tab.forEach((ele) => {
+        ele.setOrigin(0);
+        ele.type = TILE_DESC[key];
+      });
+      this.put(TILE_DESC[key], tab);
+    }
+    return player;
+  }
+
   generatePos (key) {
     let tab = [];
     for (let i = 0; i < this.levelWidth; i++) {
@@ -102,13 +151,13 @@ export default class LevelManager {
     const targetPos = this.newPositionVector(dir, context.x, context.y);
 
     const contextIndex = this.getIndexByPos(context.x, context.y, context.type).pop(); // there isn't possibility to 2 box or 2 players in one tile, so just pop
-    let targetIndex = this.getIndexByPos(targetPos.x, targetPos.y); // remember this return array, not obj!
-
-    if (targetIndex.length <= 1) {
-      targetIndex = targetIndex.pop();
+    const elementsOnTargetPos = this.getIndexByPos(targetPos.x, targetPos.y); // remember this return array, not obj!
+    let targetIndex;
+    if (elementsOnTargetPos.length <= 1) {
+      targetIndex = elementsOnTargetPos.pop();
     } else {
       // in this stage only boxes matter, so pick them
-      targetIndex = targetIndex.filter((indexes) => {
+      targetIndex = elementsOnTargetPos.filter((indexes) => {
         return indexes.x === TILE_DESC.BOX;
       }).pop();
     }
