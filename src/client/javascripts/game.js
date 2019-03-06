@@ -3,7 +3,7 @@
 
 import {level, TILE_DESC} from './level.js';
 import LevelManager from './LevelManager.js';
-import Solver from './Solver.js'; // ups
+import Solver from './Solver.js';
 
 var Game;
 export default Game;
