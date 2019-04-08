@@ -1,4 +1,4 @@
-# H1 Sokoban.js #
+# Sokoban.js #
 Sokoban.js is a playground for solvers of sokoban game. 
 Just import your map, run solver and wait for results.
   
