@@ -1,7 +1,7 @@
 /* global Phaser */
 'use strict';
 
-import {level, TILE_DESC} from './level.js';
+import { level, TILE_DESC } from './level.js';
 import LevelManager from './LevelManager.js';
 import Solver from './Solver.js';
 
@@ -10,17 +10,17 @@ export default Game;
 
 const gameOptions = {
   tileSize: 40, // physicaly 40x40 px
-  gameWidth: 520,
+  gameWidth: 520, // fit 13x13 tiles map
   gameHeight: 520,
   gameSpeed: 100, // TODO: remove speed
-  gameScale: 2 // TODO: define scale factor
+  gameScale: 2, // TODO: define scale factor
 };
 
 const DIRECTIONS = {
   UP: 0,
   DOWN: 1,
   LEFT: 2,
-  RIGHT: 3
+  RIGHT: 3,
 };
 
 window.onload = () => {
@@ -28,7 +28,7 @@ window.onload = () => {
     type: Phaser.AUTO,
     width: gameOptions.gameWidth,
     height: gameOptions.gameHeight,
-    scene: [ playGame ]
+    scene: [playGame],
   };
   Game = new Phaser.Game(gameConfig);
   resize();
@@ -37,7 +37,7 @@ window.onload = () => {
 
 class playGame extends Phaser.Scene {
   constructor() {
-    super({key: 'PlayGame'});
+    super({ key: 'PlayGame' });
     this.INPUT_DELAY = 200;
     this.lastKeyTime = 0;
   }
@@ -45,7 +45,7 @@ class playGame extends Phaser.Scene {
   preload() {
     this.load.spritesheet('tiles', '../images/tiles.png', {
       frameWidth: gameOptions.tileSize,
-      frameHeight: gameOptions.tileSize
+      frameHeight: gameOptions.tileSize,
     });
   }
 
@@ -55,29 +55,43 @@ class playGame extends Phaser.Scene {
 
     this.levelManager = new LevelManager(level, gameOptions.tileSize);
     // LOAD MAP
-    this.player = this.levelManager.loadLevel({scene: this});
+    this.player = this.levelManager.loadLevel({ scene: this });
 
     this.keys = {
-      W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-      A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-      S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      R: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
+      W: {
+        ...this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+        action: goUp,
+      },
+      A: {
+        ...this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+        action: goLeft,
+      },
+      S: {
+        ...this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+        action: goDown,
+      },
+      D: {
+        ...this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        action: goRight,
+      },
+      R: {
+        ...this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R),
+        action: restart,
+      },
     };
 
     this.solver = new Solver(this.levelManager, this.player); // TODO: rework that constructor and class
-    this.solver.brainlessBruteForce();
+    // this.solver.brainlessBruteForce();
   }
 
   update() {
     if (this.lastKeyTime + this.INPUT_DELAY < this.time.now) {
-      this.lastKeyTime = (this.checkKeys())
-        ? this.time.now
-        : this.lastKeyTime;
+      this.lastKeyTime = this.checkKeys() ? this.time.now : this.lastKeyTime;
     }
   }
 
   checkKeys() {
+    
     if (this.keys.W.isDown) {
       if (this.levelManager.checkMove(this.player, DIRECTIONS.UP) > -1) {
         this.levelManager.move(this.player, DIRECTIONS.UP);

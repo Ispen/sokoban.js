@@ -1,19 +1,21 @@
 'use strict';
 
 class Node {
-  constructor (parent, dir) {
-    this.pathToMe = (parent) ? parent.pathToMe.slice() : [];
-    if (dir === 0 || dir) { this.pathToMe.push(dir); }
+  constructor(parent, dir) {
+    this.pathToMe = parent ? parent.pathToMe.slice() : [];
+    if (dir === 0 || dir) {
+      this.pathToMe.push(dir);
+    }
   }
 }
 
 export default class Solver {
-  constructor (levelManager, player) {
+  constructor(levelManager, player) {
     this.levelManager = levelManager;
     this.player = player;
   }
 
-  brainlessBruteForce () {
+  brainlessBruteForce() {
     const STEPS_DIR = 4;
     const MAX_MOVES = 13;
     let currentDepth = 0;
@@ -32,15 +34,19 @@ export default class Solver {
         node = allNodes[currentDepth][i];
         for (let dir = 0; dir < STEPS_DIR; dir++) {
           this.levelManager.resetPositions();
-          node.pathToMe.forEach((dir) => {
+          node.pathToMe.forEach(dir => {
             this.levelManager.move(this.player, dir);
           });
           if (this.levelManager.checkMove(this.player, dir) > -1) {
             this.levelManager.move(this.player, dir);
             allNodes[currentDepth + 1].push(new Node(node, dir));
             if (this.levelManager.isWin()) {
-              console.log('WIN! Winning path: ',
-                allNodes[currentDepth + 1][allNodes[currentDepth + 1].length - 1]);
+              console.log(
+                'WIN! Winning path: ',
+                allNodes[currentDepth + 1][
+                  allNodes[currentDepth + 1].length - 1
+                ]
+              );
             }
           }
         }

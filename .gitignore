@@ -1,6 +1,10 @@
+.*
 node_modules
-.idea
 build
 public/**
 !public/images/*
 yarn-error.log
+
+# UNIGNORE
+!.babelrc
+!.eslintrc.js
