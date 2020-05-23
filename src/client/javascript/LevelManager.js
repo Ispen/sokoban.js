@@ -1,5 +1,3 @@
-'use strict';
-
 import { TILE_DESC } from './level.js';
 
 const DIRECTIONS = {

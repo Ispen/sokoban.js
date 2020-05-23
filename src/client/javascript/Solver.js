@@ -1,5 +1,3 @@
-'use strict';
-
 class Node {
   constructor(parent, dir) {
     this.pathToMe = parent ? parent.pathToMe.slice() : [];

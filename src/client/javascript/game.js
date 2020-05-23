@@ -1,5 +1,5 @@
-/* global Phaser */
-'use strict';
+import * as Phaser from 'phaser';
+import Tiles from '../images/tiles.png';
 
 import {
   level,
@@ -53,7 +53,7 @@ class playGame extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('tiles', '../images/tiles.png', {
+    this.load.spritesheet('tiles', Tiles, {
       frameWidth: gameOptions.tileSize,
       frameHeight: gameOptions.tileSize
     });
